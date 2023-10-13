@@ -20,9 +20,6 @@ class AssetSellingModel:
         exog_0,
         T=10,
         gamma=1,
-        exog_info_fn=None,
-        transition_fn=None,
-        objective_fn=None,
         seed=20180529,
     ):
         """
@@ -89,7 +86,7 @@ class AssetSellingModel:
         biasdf = exog_params["biasdf"].T
         biasprob = biasdf[self.state.bias]
 
-        coin = self.prng.random_sample()
+        coin = self.prng.uniform()
         if coin < biasprob["Up"]:
             new_bias = "Up"
             bias = exog_params["UpStep"]
@@ -99,9 +96,6 @@ class AssetSellingModel:
         else:
             new_bias = "Down"
             bias = exog_params["DownStep"]
-
-        prev_price2 = self.state.prev_price
-        prev_price = self.state.price
 
         price_delta = self.prng.normal(bias, exog_params["Variance"])
         updated_price = self.state.price + price_delta
@@ -114,8 +108,6 @@ class AssetSellingModel:
         return {
             "price": new_price,
             "bias": new_bias,
-            "prev_price": prev_price,
-            "prev_price2": prev_price2,
         }
 
     def transition_fn(self, decision, exog_info):
@@ -127,8 +119,13 @@ class AssetSellingModel:
                the exogenous info does not factor into the transition function)
         :return: dict - updated resource
         """
+        alpha = 0.7
         new_resource = 0 if decision.sell == 1 else self.state.resource
-        return {"resource": new_resource}
+        new_price_smoothed = (
+            1 - alpha
+        ) * self.state.price_smoothed + alpha * exog_info["price"]
+
+        return {"resource": new_resource, "price_smoothed": new_price_smoothed}
 
     def objective_fn(self, decision, exog_info):
         """

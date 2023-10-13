@@ -75,46 +75,28 @@ class AssetSellingPolicy:
         :param info_tuple: tuple - contains the parameters needed to run the policy
         :return: a decision made based on the policy
         """
-        #####
-        # theta = info_tuple[0] - (1-info_tuple[1])
+
         theta = info_tuple[0]
-        # theta = info_tuple[0]*info_tuple[1]
 
-        # TODO prev_price aus state auslesen nicht aus policy parametern!
-        prev_price = info_tuple[2]
-        prev_price2 = info_tuple[3]
-
-        # TODO muss man den smoothed price auch als state mitspeichern?
-        # (Abschnitt track policy oder wird der das automatisch?)
-
-        # TODO linting!
-        smoothed_price_p = 0.7 * state.price + 0.2 * prev_price + 0.1 * prev_price2
-        smoothed_price = smoothed_price_p  # discount factor
-
-        # state.price_d = state.price
-        state_price_d = state.price * info_tuple[1]
-
-        print(
-            "Theta {}, discount factor {},  Current price {}, smoothed_price {}, d_smoothed_prince {}, and hold interval ({}, {})".format(
-                theta,
-                info_tuple[1],
-                state_price_d,
-                smoothed_price_p,
-                smoothed_price,
-                max(0, smoothed_price - theta),
-                smoothed_price + theta,
-            )
-        )
+        #print(
+        #    "Theta {}, Current price {}, smoothed_price {}, and hold interval ({}, {})".format(
+        #        theta,
+        #        state.price,
+        #        state.price_smoothed,
+        #        max(0, state.price_smoothed - theta),
+        #        state.price_smoothed + theta,
+        #    )
+        #)
 
         new_decision = (
             {"sell": 1, "hold": 0}
-            if state_price_d >= smoothed_price + theta
-            or state_price_d <= max(0, smoothed_price - theta)
+            if state.price >= state.price_smoothed + theta
+            or state.price <= max(0, state.price_smoothed - theta)
             else {"sell": 0, "hold": 1}
         )
         return new_decision
 
-    def run_policy(self, param_list, policy_info, policy, time):
+    def run_policy(self, policy_info, policy, time):
         """
         this function runs the model with a selected policy
 
@@ -125,11 +107,8 @@ class AssetSellingPolicy:
         :return: float - calculated contribution
         """
         model_copy = copy(self.model)
-        theta = param_list[2][0]
 
         while model_copy.state.resource != 0 and time < model_copy.initial_args["T"]:
-            # build decision policy
-
             p = self.build_policy(policy_info)
 
             # make decision based on chosen policy
@@ -148,30 +127,9 @@ class AssetSellingPolicy:
                 decision = {"sell": 1, "hold": 0}
 
             x = model_copy.build_decision(decision)
-            # print("time={}, obj={}, s.resource={}, s.price={}, x={}".format(time, model_copy.objective,
-            #                                                                model_copy.state.resource,
-            #                                                                model_copy.state.price, x))
-            #####
-            prev_price2 = model_copy.state.prev_price
-            #####
-
-            # update previous price
-            prev_price = model_copy.state.price
 
             # step the model forward one iteration
             model_copy.step(x)
-            # update track policy info with new previous price
-
-            #####
-            # TODO prev price als states und nicht über updates der parameter verwalten!
-            policy_info.update(
-                {
-                    "track": (theta, model_copy.initial_args["gamma"] ** time)
-                    + (prev_price, prev_price2)
-                }
-            )
-            # policy_info.update({'track': param_list[2] + (prev_price, prev_price2)})
-            #####
 
             # increment time
             time += 1
@@ -215,7 +173,7 @@ class AssetSellingPolicy:
 
         return theta_values, theta_low_values, theta_high_values
 
-    def vary_theta(self, param_list, policy_info, policy, time, theta_values):
+    def vary_theta(self, policy_info, policy, time, theta_values):
         """
         this function calculates the contribution for each theta value in a list
 
@@ -233,7 +191,7 @@ class AssetSellingPolicy:
             policy_dict = policy_info.copy()
             policy_dict.update({"high_low": theta})
             print("policy_dict={}".format(policy_dict))
-            contribution = self.run_policy(param_list, policy_dict, policy, t)
+            contribution = self.run_policy(policy_dict, policy, t)
             contribution_values.append(contribution)
 
         return contribution_values
@@ -252,9 +210,9 @@ class AssetSellingPolicy:
         contributions = np.reshape(contributions, (-1, increment_count))
 
         fig, ax = plt.subplots()
-        im = ax.imshow(contributions, cmap="hot")
+        ax.imshow(contributions, cmap="hot")
         # create colorbar
-        cbar = ax.figure.colorbar(im, ax=ax)
+        # cbar = ax.figure.colorbar(im, ax=ax)
         # cbar.ax.set_ylabel(cbarlabel, rotation=-90, va="bottom")
         # we want to show all ticks...
         ax.set_xticks(np.arange(len(theta_low_values)))
@@ -299,8 +257,7 @@ class AssetSellingPolicy:
             else:
                 ax = axsubs[n % 2]
 
-            im = ax.imshow(contributions, cmap="hot")
-            cbar = ax.figure.colorbar(im, ax=ax)
+            ax.imshow(contributions, cmap="hot")
             ax.set_yticks(np.arange(len(theta_low_values)))
             ax.set_xticks(np.arange(len(theta_high_values)))
             ax.set_yticklabels(list(reversed(theta_low_values)))
