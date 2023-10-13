@@ -5,15 +5,11 @@ Asset selling driver script
 from collections import namedtuple
 import pandas as pd
 import numpy as np
-from AssetSellingModel_Q3 import AssetSellingModel
-from AssetSellingPolicy_Q3 import AssetSellingPolicy
-
+from AssetSellingModel import AssetSellingModel
+from AssetSellingPolicy import AssetSellingPolicy
 import matplotlib.pyplot as plt
 from copy import copy
 import math
-import time
-
-plt.rcParams["figure.figsize"] = (15, 8)
 
 if __name__ == "__main__":
     # read in policy parameters from an Excel spreadsheet, "asset_selling_policy_parameters.xlsx"
@@ -28,7 +24,6 @@ if __name__ == "__main__":
 
     policy_selected = sheet3["Policy"][0]
     T = sheet3["TimeHorizon"][0]
-    gamma = sheet3["DiscountFactor"][0]
     initPrice = sheet3["InitialPrice"][0]
     initBias = sheet3["InitialBias"][0]
 
@@ -48,21 +43,11 @@ if __name__ == "__main__":
 
     # initialize the model and the policy
     policy_names = ["sell_low", "high_low", "track"]
-    #####
-    state_names = ["price", "resource", "bias", "prev_price", "prev_price2"]
-    init_state = {
-        "price": initPrice,
-        "resource": 1,
-        "bias": initBias,
-        "prev_price": initPrice,
-        "prev_price2": initPrice,
-    }
-    #####
+    state_names = ["price", "resource", "bias"]
+    init_state = {"price": initPrice, "resource": 1, "bias": initBias}
     decision_names = ["sell", "hold"]
 
-    M = AssetSellingModel(
-        state_names, decision_names, init_state, exog_params, T, gamma
-    )
+    M = AssetSellingModel(state_names, decision_names, init_state, exog_params, T)
     P = AssetSellingPolicy(M, policy_names)
     t = 0
     prev_price = init_state["price"]
@@ -71,17 +56,15 @@ if __name__ == "__main__":
     policy_info = {
         "sell_low": param_list[0],
         "high_low": param_list[1],
-        "track": param_list[2] + (prev_price, prev_price),
+        "track": param_list[2] + (prev_price,),
     }
 
-    print("Parameters track!!!!!!!!!!!! ", policy_info["track"])
-
-    start = time.time()
-    #####
-    if not policy_selected in ["full_grid", "track"]:
-        #####
-        # print("Selected policy {}, time horizon {}, initial price {} and number of iterations {}".format(policy_selected,T,initPrice,
-        #    ))
+    if not policy_selected == "full_grid":
+        print(
+            "Selected policy {}, time horizon {}, initial price {} and number of iterations {}".format(
+                policy_selected, T, initPrice, nIterations
+            )
+        )
         contribution_iterations = [
             P.run_policy(param_list, policy_info, policy_selected, t)
             for ite in list(range(nIterations))
@@ -122,71 +105,6 @@ if __name__ == "__main__":
         ax.set_xlabel("Iterations", labelpad=10)
 
         plt.show()
-    #####
-    elif policy_selected == "track":
-        # print("Selected policy {}, time horizon {}, initial price {} and number of iterations {}".format(policy_selected,T,initPrice,
-        #    ))
-        theta_range = np.linspace(
-            policy_info["track"][0], policy_info["track"][1], printStep
-        )
-        avg_res = []
-        avg_stop = []
-        for theta in theta_range:
-            print("Init iterations for theta ", theta)
-            param_list[2] = (theta, 0)
-            policy_info["track"] = (
-                theta,
-                None,
-                policy_info["track"][2],
-                policy_info["track"][3],
-            )
-            print("Parameters track!!!!!!!!!!!! ", policy_info["track"])
-            res = []
-            t_stop_arr = []
-            for k in range(nIterations):
-                contrib, t_stop = P.run_policy(
-                    param_list, policy_info, policy_selected, t
-                )
-                res.append(contrib)
-                t_stop_arr.append(t_stop)
-                print(
-                    "Iteration {} for theta {}. The contribution was {} and the stopping time was {}".format(
-                        k, theta, contrib, t_stop
-                    )
-                )
-                print("\n")
-            avg_contrib = np.array(res).mean()
-            avg_t_stop = np.array(t_stop_arr).mean()
-            print("\n")
-            print(
-                "**************************************************************************************"
-            )
-            print(
-                "Finishing iterations for theta {}. Average contribution {} and average stopping time {}".format(
-                    theta, avg_contrib, avg_t_stop
-                )
-            )
-            avg_res.append(avg_contrib)
-            avg_stop.append(avg_t_stop)
-
-        fig, axsubs = plt.subplots(1, 2)
-        fig.suptitle(
-            "Asset selling using policy {} with parameters {} and T {}".format(
-                policy_selected, policy_info[policy_selected], T
-            )
-        )
-
-        axsubs[0].plot(theta_range, avg_res, "g")
-        axsubs[0].set_title("Average contribution")
-
-        axsubs[1].plot(theta_range, avg_stop, "g")
-        axsubs[1].set_title("Average stopping time")
-
-        # plt.figure()
-        # plt.plot(theta_range, avg_res)
-        plt.show()
-
-    #####
     else:
         # obtain the theta values to carry out a full grid search
         grid_search_theta_values = P.grid_search_theta_values(
@@ -221,5 +139,3 @@ if __name__ == "__main__":
             grid_search_theta_values[2],
             printIterations,
         )
-    end = time.time()
-    print("{} secs".format(end - start))

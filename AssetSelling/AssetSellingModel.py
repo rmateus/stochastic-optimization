@@ -19,6 +19,7 @@ class AssetSellingModel:
         state_0,
         exog_0,
         T=10,
+        gamma=1,
         exog_info_fn=None,
         transition_fn=None,
         objective_fn=None,
@@ -37,16 +38,18 @@ class AssetSellingModel:
         :param seed: int - seed for random number generator
         """
 
-        self.initial_args = {"seed": seed, "T": T, "exog_params": exog_0}
+        self.initial_args = {
+            "seed": seed,
+            "T": T,
+            "exog_params": exog_0,
+            "gamma": gamma,
+        }
         exog_params = self.initial_args["exog_params"]
         biasdf = exog_params["biasdf"]
         biasdf = biasdf.cumsum(axis=1)
         self.initial_args["exog_params"].update({"biasdf": biasdf})
-        # print(self.initial_args['exog_params']['biasdf'])
-        # print("\n")
-        # print(self.initial_args)
 
-        self.prng = np.random.RandomState(seed)
+        self.prng = np.random.default_rng(seed)
         self.initial_state = state_0
         self.state_variable = state_variable
         self.decision_variable = decision_variable
@@ -81,7 +84,6 @@ class AssetSellingModel:
         :return: dict - updated price
         """
         # we assume that the change in price is normally distributed with mean bias and variance 2
-
         exog_params = self.initial_args["exog_params"]
 
         biasdf = exog_params["biasdf"].T
@@ -98,15 +100,23 @@ class AssetSellingModel:
             new_bias = "Down"
             bias = exog_params["DownStep"]
 
-        print("coin ", coin, " curr_bias ", self.state.bias, " new_bias ", new_bias)
+        prev_price2 = self.state.prev_price
+        prev_price = self.state.price
 
-        updated_price = self.state.price + self.prng.normal(
-            bias, exog_params["Variance"]
-        )
+        price_delta = self.prng.normal(bias, exog_params["Variance"])
+        updated_price = self.state.price + price_delta
         # we account for the fact that asset prices cannot be negative by setting the new price as 0 whenever the
         # random process gives us a negative price
         new_price = 0.0 if updated_price < 0.0 else updated_price
-        return {"price": new_price, "bias": new_bias}
+
+        # print("coin ",coin," curr_bias ",self.state.bias," new_bias ",new_bias," price_delta ", price_delta, " new price ",new_price)
+
+        return {
+            "price": new_price,
+            "bias": new_bias,
+            "prev_price": prev_price,
+            "prev_price2": prev_price2,
+        }
 
     def transition_fn(self, decision, exog_info):
         """
