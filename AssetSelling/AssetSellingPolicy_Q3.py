@@ -8,9 +8,7 @@ import numpy as np
 from AssetSellingModel import AssetSellingModel
 import matplotlib.pyplot as plt
 from matplotlib.ticker import FormatStrFormatter
-###
 from copy import copy, deepcopy
-###
 import math
 
 class AssetSellingPolicy():
@@ -77,9 +75,14 @@ class AssetSellingPolicy():
         theta = info_tuple[0]
         #theta = info_tuple[0]*info_tuple[1]
 
+        # TODO prev_price aus state auslesen nicht aus policy parametern!
         prev_price = info_tuple[2]
         prev_price2 = info_tuple[3]
         
+        # TODO muss man den smoothed price auch als state mitspeichern? 
+        # (Abschnitt track policy oder wird der das automatisch?)
+
+        # TODO linting!
         smoothed_price_p = .7*state.price + .2*prev_price + .1*prev_price2
         smoothed_price = smoothed_price_p #discount factor 
 
@@ -94,7 +97,7 @@ class AssetSellingPolicy():
                 or state_price_d <= max(0,smoothed_price - theta) \
             else {'sell': 0, 'hold': 1}
         return new_decision
-        #####
+
     def run_policy(self, param_list, policy_info, policy, time):
         """
         this function runs the model with a selected policy
@@ -126,9 +129,9 @@ class AssetSellingPolicy():
                  decision = {'sell': 1, 'hold': 0}  
 
             x = model_copy.build_decision(decision)
-            print("time={}, obj={}, s.resource={}, s.price={}, x={}".format(time, model_copy.objective,
-                                                                            model_copy.state.resource,
-                                                                            model_copy.state.price, x))
+            #print("time={}, obj={}, s.resource={}, s.price={}, x={}".format(time, model_copy.objective,
+            #                                                                model_copy.state.resource,
+            #                                                                model_copy.state.price, x))
             #####
             prev_price2 = model_copy.state.prev_price
             #####
@@ -141,7 +144,8 @@ class AssetSellingPolicy():
             # update track policy info with new previous price
             
             #####
-            policy_info.update({'track': (theta,model_copy.initial_args['gamma'] ** time) + (prev_price, prev_price2)})
+            # TODO prev price als states und nicht über updates der parameter verwalten!
+            policy_info.update({'track': (theta, model_copy.initial_args['gamma'] ** time) + (prev_price, prev_price2)})
             #policy_info.update({'track': param_list[2] + (prev_price, prev_price2)})
             #####
             
@@ -153,10 +157,6 @@ class AssetSellingPolicy():
         print("obj={}, state.resource={}".format(contribution, model_copy.state.resource))
         
         return contribution,time
-
-
-        
-
 
     def grid_search_theta_values(self, low_min, low_max, high_min, high_max, increment_size):
         """
@@ -193,7 +193,6 @@ class AssetSellingPolicy():
         :return: list - list of contribution values corresponding to each theta
         """
         contribution_values = []
-       
 
         for theta in theta_values:
             t = time
@@ -253,12 +252,9 @@ class AssetSellingPolicy():
         for ite,n in zip(iterations,list(range(len(iterations)))):
             contributions = np.array(contribution_values[ite])
             
-            
             increment_count = len(theta_high_values)
             contributions = np.reshape(contributions, (-1, increment_count))
             contributions=contributions[::-1]
-            
-
 
             print("Ite {}, n {} and plot ({},{})".format(ite,n,n // 2,n % 2))
             if (math.ceil(len(iterations)/2)>1):

@@ -18,7 +18,7 @@ if __name__ == "__main__":
     param_list = list(params)
     sheet2 = pd.read_excel("asset_selling_policy_parameters.xlsx", sheet_name="Sheet2")
     sheet3 = pd.read_excel("asset_selling_policy_parameters.xlsx", sheet_name="Sheet3")
-    biasdf = pd.read_excel("asset_selling_policy_parameters.xlsx", sheet_name="Sheet4")
+    biasdf = pd.read_excel("asset_selling_policy_parameters.xlsx", sheet_name="Sheet4", index_col=0)
     
     
    
@@ -68,7 +68,6 @@ if __name__ == "__main__":
         print(cum_avg_contrib)
         
         #plotting the results
-       
         fig, axsubs = plt.subplots(1,2,sharex=True,sharey=True)
         fig.suptitle("Asset selling using policy {} with parameters {} and T {}".format(policy_selected,policy_info[policy_selected],T) )
         i = np.arange(0, nIterations, 1)
@@ -89,7 +88,6 @@ if __name__ == "__main__":
         ax.set_xlabel('Iterations', labelpad=10)
         
         plt.show()
-        
     else:
         # obtain the theta values to carry out a full grid search
         grid_search_theta_values = P.grid_search_theta_values(sheet2['low_min'], sheet2['low_max'], sheet2['high_min'], sheet2['high_max'], sheet2['increment_size'])
