@@ -19,8 +19,7 @@ class AssetSellingModel:
         state_0,
         exog_0,
         T=10,
-        gamma=1,
-        seed=20180529,
+        seed=42,
     ):
         """
         Initializes the model
@@ -39,7 +38,6 @@ class AssetSellingModel:
             "seed": seed,
             "T": T,
             "exog_params": exog_0,
-            "gamma": gamma,
         }
         exog_params = self.initial_args["exog_params"]
         biasdf = exog_params["biasdf"]
@@ -103,8 +101,6 @@ class AssetSellingModel:
         # random process gives us a negative price
         new_price = 0.0 if updated_price < 0.0 else updated_price
 
-        # print("coin ",coin," curr_bias ",self.state.bias," new_bias ",new_bias," price_delta ", price_delta, " new price ",new_price)
-
         return {
             "price": new_price,
             "bias": new_bias,
@@ -142,13 +138,17 @@ class AssetSellingModel:
 
     def step(self, decision):
         """
-        this function steps the process forward by one time increment by updating the sum of the contributions, the
-        exogenous information and the state variable
+        this function steps the process forward by one time increment by updating
+        1. the exogenous information
+        2. the sum of the contributions
+        3. the state variable
 
         :param decision: namedtuple - contains all decision info
-        :return: none
+        :return: current state values
         """
         exog_info = self.exog_info_fn()
         self.objective += self.objective_fn(decision, exog_info)
         exog_info.update(self.transition_fn(decision, exog_info))
         self.state = self.build_state(exog_info)
+
+        return self.state

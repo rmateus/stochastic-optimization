@@ -6,7 +6,7 @@ from collections import namedtuple
 import math
 from copy import copy
 import numpy as np
-import matplotlib.pyplot as plt
+import pandas as pd
 
 
 class AssetSellingPolicy:
@@ -78,16 +78,6 @@ class AssetSellingPolicy:
 
         theta = info_tuple[0]
 
-        #print(
-        #    "Theta {}, Current price {}, smoothed_price {}, and hold interval ({}, {})".format(
-        #        theta,
-        #        state.price,
-        #        state.price_smoothed,
-        #        max(0, state.price_smoothed - theta),
-        #        state.price_smoothed + theta,
-        #    )
-        #)
-
         new_decision = (
             {"sell": 1, "hold": 0}
             if state.price >= state.price_smoothed + theta
@@ -108,7 +98,11 @@ class AssetSellingPolicy:
         """
         model_copy = copy(self.model)
 
+        df_log = pd.DataFrame(columns=["t"] + self.model.state_variable)
+        df_log.loc[0] = [time] + list(self.model.state)
+        k = 0
         while model_copy.state.resource != 0 and time < model_copy.initial_args["T"]:
+            # Update policy parameters
             p = self.build_policy(policy_info)
 
             # make decision based on chosen policy
@@ -133,19 +127,25 @@ class AssetSellingPolicy:
 
             # increment time
             time += 1
+            k += 1
 
-        contribution = model_copy.objective * model_copy.initial_args["gamma"] ** (
-            time - 1
-        )
-        # contribution = model_copy.objective
-        print(
-            "obj={}, state.resource={}".format(contribution, model_copy.state.resource)
-        )
+            # log state
+            df_log.loc[k] = [time] + list(model_copy.state)
 
-        return contribution, time
+        contribution = model_copy.objective
+
+        return contribution, time, df_log
 
     def grid_search_theta_values(
-        self, low_min, low_max, high_min, high_max, increment_size
+        self,
+        policy,
+        low_min,
+        low_max,
+        high_min,
+        high_max,
+        track_min,
+        track_max,
+        increment_size,
     ):
         """
         this function gives a list of theta values needed to run a full grid search
@@ -158,12 +158,25 @@ class AssetSellingPolicy:
         :return: list - list of theta values
         """
 
-        theta_low_values = np.linspace(
-            low_min, low_max, (low_max - low_min) / increment_size + 1
-        )
-        theta_high_values = np.linspace(
-            high_min, high_max, (high_max - high_min) / increment_size + 1
-        )
+        if policy == "sell_low" or policy == "high_low":
+            theta_low_values = np.linspace(
+                low_min, low_max, math.floor((low_max - low_min) / increment_size) + 1
+            )
+            if policy == "high_low":
+                theta_high_values = np.linspace(
+                    high_min,
+                    high_max,
+                    math.floor((high_max - high_min) / increment_size) + 1,
+                )
+            else:
+                theta_high_values = [None]
+        elif policy == "track":
+            theta_low_values = np.linspace(
+                track_min,
+                track_max,
+                math.floor((track_max - track_min) / increment_size) + 1,
+            )
+            theta_high_values = [None]
 
         theta_values = []
         for x in theta_low_values:
@@ -171,13 +184,12 @@ class AssetSellingPolicy:
                 theta = (x, y)
                 theta_values.append(theta)
 
-        return theta_values, theta_low_values, theta_high_values
+        return theta_values, theta_high_values, theta_low_values
 
     def vary_theta(self, policy_info, policy, time, theta_values):
         """
         this function calculates the contribution for each theta value in a list
 
-        :param param_list: list of policy parameters in tuple form (read in from an Excel spreadsheet)
         :param policy_info: dict - dictionary of policies and their associated parameters
         :param policy: str - the name of the chosen policy
         :param time: float - start time
@@ -188,107 +200,9 @@ class AssetSellingPolicy:
 
         for theta in theta_values:
             t = time
-            policy_dict = policy_info.copy()
-            policy_dict.update({"high_low": theta})
-            print("policy_dict={}".format(policy_dict))
-            contribution = self.run_policy(policy_dict, policy, t)
-            contribution_values.append(contribution)
+            policy_info_copy = policy_info.copy()
+            policy_info_copy.update({policy: theta})
+            contribution = self.run_policy(policy_info_copy, policy, t)
+            contribution_values.append((contribution[0], contribution[1]))
 
         return contribution_values
-
-    def plot_heat_map(self, contribution_values, theta_low_values, theta_high_values):
-        """
-        this function plots a heat map
-
-        :param contribution_values: list - list of contribution values
-        :param theta_low_values: list - list of theta_low_values
-        :param theta_high_values: list - list of theta_high_values
-        :return: none (plots a heat map)
-        """
-        contributions = np.array(contribution_values)
-        increment_count = len(theta_low_values)
-        contributions = np.reshape(contributions, (-1, increment_count))
-
-        fig, ax = plt.subplots()
-        ax.imshow(contributions, cmap="hot")
-        # create colorbar
-        # cbar = ax.figure.colorbar(im, ax=ax)
-        # cbar.ax.set_ylabel(cbarlabel, rotation=-90, va="bottom")
-        # we want to show all ticks...
-        ax.set_xticks(np.arange(len(theta_low_values)))
-        ax.set_yticks(np.arange(len(theta_high_values)))
-        # ... and label them with the respective list entries
-        ax.set_xticklabels(theta_low_values)
-        ax.set_yticklabels(theta_high_values)
-        # rotate the tick labels and set their alignment.
-        plt.setp(ax.get_xticklabels(), rotation=45, ha="right", rotation_mode="anchor")
-        ax.set_title("Heatmap of contribution values across different values of theta")
-        fig.tight_layout()
-        plt.show()
-        return True
-
-    def plot_heat_map_many(
-        self, contribution_values, theta_low_values, theta_high_values, iterations
-    ):
-        """
-        this function plots a heat map
-
-        :param contribution_values: list - list of contribution values
-        :param theta_low_values: list - list of theta_low_values
-        :param theta_high_values: list - list of theta_high_values
-        :return: none (plots a heat map)
-        """
-        fig, axsubs = plt.subplots(math.ceil(len(iterations) / 2), 2)
-        fig.suptitle(
-            "Heatmap of contribution values across different values of theta",
-            fontsize=10,
-        )
-
-        for ite, n in zip(iterations, list(range(len(iterations)))):
-            contributions = np.array(contribution_values[ite])
-
-            increment_count = len(theta_high_values)
-            contributions = np.reshape(contributions, (-1, increment_count))
-            contributions = contributions[::-1]
-
-            print("Ite {}, n {} and plot ({},{})".format(ite, n, n // 2, n % 2))
-            if math.ceil(len(iterations) / 2) > 1:
-                ax = axsubs[n // 2, n % 2]
-            else:
-                ax = axsubs[n % 2]
-
-            ax.imshow(contributions, cmap="hot")
-            ax.set_yticks(np.arange(len(theta_low_values)))
-            ax.set_xticks(np.arange(len(theta_high_values)))
-            ax.set_yticklabels(list(reversed(theta_low_values)))
-            ax.set_xticklabels(theta_high_values)
-
-            # get the current labels
-            labelsx = [item.get_text() for item in ax.get_xticklabels()]
-            ax.set_xticklabels([str(round(float(label), 2)) for label in labelsx])
-
-            # get the current labels
-            labelsy = [item.get_text() for item in ax.get_yticklabels()]
-            ax.set_yticklabels([str(round(float(label), 2)) for label in labelsy])
-
-            plt.setp(
-                ax.get_xticklabels(), rotation=45, ha="right", rotation_mode="anchor"
-            )
-
-            ax.set_title("Iteration {}".format(ite))
-
-        # Create a big subplot
-        ax = fig.add_subplot(111, frameon=False)
-        # hide tick and tick label of the big axes
-        plt.tick_params(
-            labelcolor="none", top=False, bottom=False, left=False, right=False
-        )
-
-        ax.set_ylabel(
-            "Theta sell low values", labelpad=0
-        )  # Use argument `labelpad` to move label downwards.
-        ax.set_xlabel("Theta sell high values", labelpad=10)
-
-        fig.tight_layout()
-        plt.show()
-        return True
