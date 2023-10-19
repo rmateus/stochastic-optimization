@@ -26,10 +26,11 @@ class AssetSellingModel:
 
         :param state_variable: list(str) - state variable dimension names
         :param decision_variable: list(str) - decision variable dimension names
-        :param state_0: dict - needs to contain at least the information to populate initial state using state_names
+        :param state_0: dict - needs to contain at least the information to populate
+                                initial state using state_names
         :param exog_info_fn: function - calculates relevant exogenous information
-        :param transition_fn: function - takes in decision variables and exogenous information to describe how the state
-               evolves
+        :param transition_fn: function - takes in decision variables and exogenous
+                                information to describe how the state evolves
         :param objective_fn: function - calculates contribution at time t
         :param seed: int - seed for random number generator
         """
@@ -73,12 +74,13 @@ class AssetSellingModel:
 
     def exog_info_fn(self):
         """
-        this function gives the exogenous information that is dependent on a random process (in the case of the the asset
-        selling model, it is the change in price)
+        Triggers one timestep t->t+1 of the exogenous information,
+        usually dependent on a random process
+        (in the case of the asset selling model, it is the change in price)
 
         :return: dict - updated price
         """
-        # we assume that the change in price is normally distributed with mean bias and variance 2
+        # Assumption: change in price is normally distributed with mean bias and var 2
         exog_params = self.initial_args["exog_params"]
 
         biasdf = exog_params["biasdf"].T
@@ -97,8 +99,8 @@ class AssetSellingModel:
 
         price_delta = self.prng.normal(bias, exog_params["Variance"])
         updated_price = self.state.price + price_delta
-        # we account for the fact that asset prices cannot be negative by setting the new price as 0 whenever the
-        # random process gives us a negative price
+        # we account for the fact that asset prices cannot be negative by setting
+        # the new price as 0 whenever therandom process gives us a negative price
         new_price = 0.0 if updated_price < 0.0 else updated_price
 
         return {
@@ -108,7 +110,7 @@ class AssetSellingModel:
 
     def transition_fn(self, decision, exog_info):
         """
-        this function takes in the decision and exogenous information to update the state
+        Takes the decision and exogenous information W_t+1 to update the state
 
         :param decision: namedtuple - contains all decision info
         :param exog_info: any exogenous info (in this asset selling model,
@@ -125,7 +127,7 @@ class AssetSellingModel:
 
     def objective_fn(self, decision, exog_info):
         """
-        this function calculates the contribution, which depends on the decision and the price
+        Calculates the contribution, which depends on the decision and the price
 
         :param decision: namedtuple - contains all decision info
         :param exog_info: any exogenous info (in this asset selling model,

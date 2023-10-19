@@ -90,8 +90,9 @@ class AssetSellingPolicy:
         """
         this function runs the model with a selected policy
 
-        :param param_list: list of policy parameters in tuple form (read in from an Excel spreadsheet)
-        :param policy_info: dict - dictionary of policies and their associated parameters
+        :param param_list: list of policy parameters in tuple form
+                            (read in from Excel spreadsheet)
+        :param policy_info: dict - policies and their associated parameters
         :param policy: str - the name of the chosen policy
         :param time: float - start time
         :return: float - calculated contribution
@@ -190,7 +191,7 @@ class AssetSellingPolicy:
         """
         this function calculates the contribution for each theta value in a list
 
-        :param policy_info: dict - dictionary of policies and their associated parameters
+        :param policy_info: dict - policies and their associated parameters
         :param policy: str - the name of the chosen policy
         :param time: float - start time
         :param theta_values: list - list of all possible thetas to be tested
