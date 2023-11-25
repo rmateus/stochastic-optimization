@@ -67,9 +67,10 @@ class SDPModel(ABC):
         self.objective = 0.0
         self.t = t0
         self.T = T
+        self.seed = seed
         self.prng = np.random.RandomState(seed)
 
-    def reset(self):
+    def reset(self, reset_prng: bool = False):
         """
         Resets the SDPModel to its initial state.
 
@@ -82,9 +83,11 @@ class SDPModel(ABC):
         Returns:
             None
         """
-        self.state = self.build_state(self.initial_state)
+        self.state = self.initial_state
         self.objective = 0.0
         self.t = 0.0
+        if reset_prng is True:
+            self.prng = np.random.RandomState(self.seed)
         pass
 
     def build_state(self, info: dict):
@@ -120,7 +123,7 @@ class SDPModel(ABC):
         the exogenous information based on the current decision.
 
         Args:
-            decision: The current decision.
+            decision (namedtuple): The current decision.
 
         Returns:
             dict: A dictionary containing the exogenous information.
@@ -128,7 +131,7 @@ class SDPModel(ABC):
         pass
 
     @abstractmethod
-    def transition_fn(self, decision, exog_info):
+    def transition_fn(self, decision, exog_info: dict):
         """
         Abstract method for computing the state transition.
 
@@ -136,7 +139,7 @@ class SDPModel(ABC):
         the state transition based on the current state, decision, and exogenous information.
 
         Args:
-            decision: The current decision.
+            decision (namedtuple): The current decision.
             exog_info (dict): The exogenous information.
 
         Returns:
@@ -145,7 +148,7 @@ class SDPModel(ABC):
         pass
 
     @abstractmethod
-    def objective_fn(self, decision, exog_info):
+    def objective_fn(self, decision, exog_info: dict):
         """
         Abstract method for computing the objective value.
 
@@ -154,13 +157,26 @@ class SDPModel(ABC):
         and exogenous information.
 
         Args:
-            decision: The current decision.
+            decision (namedtuple): The current decision.
             exog_info (dict): The exogenous information.
 
         Returns:
-            float: The objective value.
+            float: The contribution to the objective.
         """
         pass
+
+    def is_finished(self):
+        """
+        Check if the model is finished. By default, the model runs until the end of the time horizon
+        but the method can be overwritten to model episodic tasks where the time horizon ends earlier.
+
+        Returns:
+            bool: True if the run is finished, False otherwise.
+        """
+        if self.t >= self.T:
+            return True
+        else:
+            return False
 
     def update_t(self):
         """
@@ -173,10 +189,10 @@ class SDPModel(ABC):
         Performs a single step in the sequential decision problem.
 
         Args:
-            decision: The decision made at the current state.
+            decision (namedtuple): The decision made at the current state.
 
         Returns:
-            The new state after the step.
+            The new state after the step and a flag indicating if the episode is finished.
         """
         # Generate new exogenous information
         exog_info = self.exog_info_fn(decision)
