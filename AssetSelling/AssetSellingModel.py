@@ -3,6 +3,7 @@ Asset selling model class
 Adapted from code by Donghun Lee (c) 2018
 
 """
+
 from collections import namedtuple
 import numpy as np
 
@@ -119,9 +120,7 @@ class AssetSellingModel:
         """
         alpha = 0.7
         new_resource = 0 if decision.sell == 1 else self.state.resource
-        new_price_smoothed = (
-            1 - alpha
-        ) * self.state.price_smoothed + alpha * exog_info["price"]
+        new_price_smoothed = (1 - alpha) * self.state.price_smoothed + alpha * exog_info["price"]
 
         return {"resource": new_resource, "price_smoothed": new_price_smoothed}
 

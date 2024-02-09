@@ -54,6 +54,8 @@ class SDPModel(ABC):
             t0 (float, optional): Initial time. Defaults to 0.
             T (float, optional): Terminal time. Defaults to 1.
             seed (int, optional): Seed for random number generation. Defaults to 42.
+            exog_params (dict, optional): (Static) parameters to be used by the exogenuous information process.
+            state_params (dict, optional): (Static) parameters to be used by the state transition function.
         """
         self.State = namedtuple("State", state_names)
         self.Decision = namedtuple("Decision", decision_names)
@@ -204,7 +206,7 @@ class SDPModel(ABC):
         exog_info.update(self.transition_fn(decision, exog_info))
 
         # Build new state from state variables and (optionally) exog_info variables.
-        # This is helpful if some of the exogenous variables are also state variables.
+        # This is convenient if some of the exogenous variables are also state variables.
         self.state = self.build_state(exog_info)
 
         # Update time counter
