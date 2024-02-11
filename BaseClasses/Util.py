@@ -21,7 +21,7 @@ def grid_search(grid: dict, policy: SDPPolicy.SDPPolicy, n_iterations: int, orde
         policy_copy = deepcopy(policy)
 
         for param, value in zip(params, v):
-            policy_copy.__setattr__(param, value)
+            setattr(policy_copy, param, value)
 
         performance = policy_copy.run_policy(n_iterations=n_iterations)
 

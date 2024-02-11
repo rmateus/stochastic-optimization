@@ -6,7 +6,7 @@ from BaseClasses.SDPPolicy import SDPPolicy
 
 
 class SellLowPolicy(SDPPolicy):
-    def __init__(self, model: SDPModel, policy_name: str = "", theta_low: float = 10):
+    def __init__(self, model: SDPModel, policy_name: str = "SellLow", theta_low: float = 10):
         super().__init__(model, policy_name)
         self.theta_low = theta_low
 
@@ -19,7 +19,9 @@ class SellLowPolicy(SDPPolicy):
 
 
 class HighLowPolicy(SDPPolicy):
-    def __init__(self, model: SDPModel, policy_name: str = "", theta_low: float = 10, theta_high: float = 30):
+    def __init__(
+        self, model: SDPModel, policy_name: str = "HighLow", theta_low: float = 10, theta_high: float = 30
+    ):
         super().__init__(model, policy_name)
         self.theta_low = theta_low
         self.theta_high = theta_high
@@ -37,7 +39,7 @@ class HighLowPolicy(SDPPolicy):
 
 
 class TrackPolicy(SDPPolicy):
-    def __init__(self, model: SDPModel, policy_name: str = "", theta: float = 10):
+    def __init__(self, model: SDPModel, policy_name: str = "Track", theta: float = 10):
         super().__init__(model, policy_name)
         self.theta = theta
 

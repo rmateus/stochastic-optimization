@@ -185,6 +185,8 @@ class SDPModel(ABC):
         """
         self.t += 1
 
+        return self.t
+
     def step(self, decision):
         """
         Performs a single step in the sequential decision problem.
