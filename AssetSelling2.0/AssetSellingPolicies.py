@@ -10,9 +10,11 @@ class SellLowPolicy(SDPPolicy):
         super().__init__(model, policy_name)
         self.theta_low = theta_low
 
-    def get_decision(self, state):
-        lower_limit = self.theta_low
-        new_decision = {"sell": 1, "hold": 0} if state.price < lower_limit else {"sell": 0, "hold": 1}
+    def get_decision(self, state, t):
+        new_decision = {"sell": 1, "hold": 0} if state.price < self.theta_low else {"sell": 0, "hold": 1}
+
+        if t == self.model.T - 1:
+            new_decision = {"sell": 1, "hold": 0}
         return new_decision
 
 
@@ -22,14 +24,15 @@ class HighLowPolicy(SDPPolicy):
         self.theta_low = theta_low
         self.theta_high = theta_high
 
-    def get_decision(self, state):
-        lower_limit = self.theta_low
-        upper_limit = self.theta_high
+    def get_decision(self, state, t):
         new_decision = (
             {"sell": 1, "hold": 0}
-            if state.price < lower_limit or state.price > upper_limit
+            if state.price < self.theta_low or state.price > self.theta_high
             else {"sell": 0, "hold": 1}
         )
+
+        if t == self.model.T - 1:
+            new_decision = {"sell": 1, "hold": 0}
         return new_decision
 
 
@@ -38,13 +41,14 @@ class TrackPolicy(SDPPolicy):
         super().__init__(model, policy_name)
         self.theta = theta
 
-    def get_decision(self, state):
-        theta = self.theta
-
+    def get_decision(self, state, t):
         new_decision = (
             {"sell": 1, "hold": 0}
-            if state.price >= state.price_smoothed + theta
-            or state.price <= max(0, state.price_smoothed - theta)
+            if state.price >= state.price_smoothed + self.theta
+            or state.price <= max(0, state.price_smoothed - self.theta)
             else {"sell": 0, "hold": 1}
         )
+
+        if t == self.model.T - 1:
+            new_decision = {"sell": 1, "hold": 0}
         return new_decision

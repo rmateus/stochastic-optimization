@@ -90,7 +90,6 @@ class SDPModel(ABC):
         self.t = 0.0
         if reset_prng is True:
             self.prng = np.random.RandomState(self.seed)
-        pass
 
     def build_state(self, info: dict):
         """
@@ -196,10 +195,10 @@ class SDPModel(ABC):
         Returns:
             The new state after the step and a flag indicating if the episode is finished.
         """
-        # Generate new exogenous information
+        # Generate new exogenous information W_t+1
         exog_info = self.exog_info_fn(decision)
 
-        # Compute objective based on W_t+1, x_t, S_t (state is not updated yet)
+        # Compute objective C_t based on W_t+1, x_t, S_t (state is not updated yet)
         self.objective += self.objective_fn(decision, exog_info)
 
         # Execute transition function and add new state to exog_info dict
