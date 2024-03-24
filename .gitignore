@@ -106,3 +106,4 @@ venv.bak/
 .conda/vcruntime140.dll
 AssetSelling/~$asset_selling_policy_parameters.xlsx
 MedicalDecisionDiabetes/~$MDDMparameters.xlsx
+stash.ipynb

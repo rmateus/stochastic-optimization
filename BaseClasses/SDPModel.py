@@ -22,6 +22,7 @@ class SDPModel(ABC):
         t (float): Current time index.
         T (float): Terminal time.
         prng (RandomState): Random number generator.
+        episode_counter (int): Which set of historical data (episode) to be used.
 
     Methods:
         __init__: Initializes an instance of the SDPModel class.
@@ -67,10 +68,12 @@ class SDPModel(ABC):
         self.state = self.build_state(S0)
 
         self.objective = 0.0
+        self.t0 = t0
         self.t = t0
         self.T = T
         self.seed = seed
         self.prng = np.random.RandomState(seed)
+        self.episode_counter = 0
 
     def reset(self, reset_prng: bool = False):
         """
@@ -87,7 +90,7 @@ class SDPModel(ABC):
         """
         self.state = self.initial_state
         self.objective = 0.0
-        self.t = 0.0
+        self.t = self.t0
         if reset_prng is True:
             self.prng = np.random.RandomState(self.seed)
 

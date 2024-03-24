@@ -100,3 +100,25 @@ class AssetSellingModel(SDPModel):
     def objective_fn(self, decision, exog_info):
         sell_size = 1 if decision.sell == 1 and self.state.resource != 0 else 0
         return self.state.price * sell_size
+
+
+class AssetSellingModelHistorical(AssetSellingModel):
+    def __init__(
+        self,
+        hist_data: pd.DataFrame,
+        alpha: float = 0.7,
+    ) -> None:
+        super().__init__(S0={"price": 0.0}, alpha=alpha)
+        self.T = 100
+        self.hist_data = hist_data
+
+    def reset(self, reset_prng: bool = False):
+        # Get the subset of the historical data that corresponds to the current episode
+        self.episode_data = self.hist_data.loc[self.hist_data["N"] == self.episode_counter, :]
+        self.episode_data = self.episode_data["price"].tolist()
+        self.episode_data.pop(0)
+        self.T = len(self.episode_data)
+        super().reset(reset_prng)
+
+    def exog_info_fn(self, decision):
+        return {"price": self.episode_data.pop(0), "bias": "Neutral"}

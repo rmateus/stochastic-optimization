@@ -10,10 +10,10 @@ class SellLowPolicy(SDPPolicy):
         super().__init__(model, policy_name)
         self.theta_low = theta_low
 
-    def get_decision(self, state, t):
+    def get_decision(self, state, t, T):
         new_decision = {"sell": 1, "hold": 0} if state.price < self.theta_low else {"sell": 0, "hold": 1}
 
-        if t == self.model.T - 1:
+        if t == T - 1:
             new_decision = {"sell": 1, "hold": 0}
         return new_decision
 
@@ -26,15 +26,16 @@ class HighLowPolicy(SDPPolicy):
         self.theta_low = theta_low
         self.theta_high = theta_high
 
-    def get_decision(self, state, t):
+    def get_decision(self, state, t, T):
         new_decision = (
             {"sell": 1, "hold": 0}
             if state.price < self.theta_low or state.price > self.theta_high
             else {"sell": 0, "hold": 1}
         )
 
-        if t == self.model.T - 1:
+        if t == T - 1:
             new_decision = {"sell": 1, "hold": 0}
+
         return new_decision
 
 
@@ -43,7 +44,7 @@ class TrackPolicy(SDPPolicy):
         super().__init__(model, policy_name)
         self.theta = theta
 
-    def get_decision(self, state, t):
+    def get_decision(self, state, t, T):
         new_decision = (
             {"sell": 1, "hold": 0}
             if state.price >= state.price_smoothed + self.theta
@@ -51,6 +52,6 @@ class TrackPolicy(SDPPolicy):
             else {"sell": 0, "hold": 1}
         )
 
-        if t == self.model.T - 1:
+        if t == T - 1:
             new_decision = {"sell": 1, "hold": 0}
         return new_decision

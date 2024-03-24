@@ -40,10 +40,11 @@ class SDPPolicy(ABC):
         # When calling deepcopy(), it is reset (then all iterations are exactly the same).
         for i in range(n_iterations):
             model_copy = copy(self.model)
+            model_copy.episode_counter = i
             model_copy.reset(reset_prng=False)
             while model_copy.is_finished() is False:
                 state_t = model_copy.state
-                decision_t = model_copy.build_decision(self.get_decision(state_t, model_copy.t))
+                decision_t = model_copy.build_decision(self.get_decision(state_t, model_copy.t, model_copy.T))
 
                 # Logging
                 results_dict = {"N": i, "t": model_copy.t, "obj": model_copy.objective}
