@@ -1,6 +1,12 @@
 # Sequential Decision Problem Modeling Library
 
-Sequential Decision Problem Modeling Library @ Castle Lab, Princeton Univ.
+This is a refactoring and evolution of the Sequential Decision Problem Modeling Library from Castle Lab, Princeton Univ.
+
+The major changes are:
+- Introduction of abstract base classes `SDPModel` and `SDPPolicy` from which all sequential decision problems and policies inherit
+- Jupyter Notebook with plotly as frontend
+
+Furthermore, the code was cleaned up for readbility and some exercises were added to the Notebooks. 
 
 ## Installation
 
@@ -8,65 +14,11 @@ Requires Python 3 and the following packages:
 - numpy
 - scipy
 - pandas
-- matplotlib
-- xlrd
-
+- plotly.express
+- yfinance
 
 ## Included Problem Models
 
-The following problem models are implemented in the subdirectories.
-Each implementation contains three components:
+This is work in progress. For now, new models exist for `AssetSelling` and `MedicalDecisionDiabetes`. Further models will be added in the future. The other folders contain the models from the original repository [https://github.com/wbpowell328/stochastic-optimization].
 
-- model: implements simulator based on how the problem is modeled
-- policy: implements decision-making policy functions
-- driver: runs the simulator and the policy
-
-To test drive, run the driver script.
-
-### Adaptive Market Planning
-
-[Link](/AdaptiveMarketPlanning)
-
-### Asset Selling
-
-[Link](/AssetSelling)
-
-### Blood Management
-
-[Link](/BloodManagement)
-
-### Clinical Trials
-
-[Link](/ClinicalTrials)
-
-### Energy Storage
-
-[Link](/EnergyStorage_I)
-
-### Medical Decision - Diabetes
-
-[Link](/MedicalDecisionDiabetes)
-
-### Stochastic Shortest Path - Static
-
-[Link](/StochasticShortestPath_Static)
-
-### Stochastic Shortest Path - Dynamic
-
-[Link](/StochasticShortestPath_Dynamic)
-
-### Two Newsvendors
-
-[Link](/TwoNewsvendor)
-
-
-## Contributors
-
-- Donghun Lee: d.lee@princeton.edu  (dhl)
-- Grace Lee: gylee@princeton.edu (or gayeonglee95@gmail.com) (gl)
-- Joy Hii: jhii@princeton.edu (jh)
-- Robert Raveanu : rraveanu@princeton.edu (rr)
-- Raluca Cobzaru: rcobzaru@princeton.edu
-- (agraur)
-- (ckn)
-- Juilana Nascimento: jnascime@princeton.edu (jn)
+There is a `ipynb`-file in each problem folder which should be the starting point for running the models.
