@@ -47,14 +47,14 @@ class SDPPolicy(ABC):
                 decision_t = model_copy.build_decision(self.get_decision(state_t, model_copy.t, model_copy.T))
 
                 # Logging
-                results_dict = {"N": i, "t": model_copy.t, "obj": model_copy.objective}
+                results_dict = {"N": i, "t": model_copy.t, "C_t sum": model_copy.objective}
                 results_dict.update(state_t._asdict())
                 results_dict.update(decision_t._asdict())
                 result_list.append(results_dict)
 
                 state_t_plus_1 = model_copy.step(decision_t)
 
-            results_dict = {"N": i, "t": model_copy.t, "obj": model_copy.objective}
+            results_dict = {"N": i, "t": model_copy.t, "C_t sum": model_copy.objective}
             results_dict.update(state_t_plus_1._asdict())
             result_list.append(results_dict)
 
@@ -64,11 +64,10 @@ class SDPPolicy(ABC):
         self.results["t_end"] = self.results.groupby("N")["t"].transform("max")
 
         # performance of one iteration is the cumulative objective at t_end
-        self.performance = self.results.loc[self.results["t"] == self.results["t_end"], ["N", "obj"]]
+        self.performance = self.results.loc[self.results["t"] == self.results["t_end"], ["N", "C_t sum"]]
         self.performance = self.performance.set_index("N")
 
         # For reporting, convert cumulative objective to contribution per time
-        self.results["obj"] = self.results.groupby("N")["obj"].diff().shift(-1)
-        self.results = self.results.rename(columns={"obj": "C_t"})
+        self.results["C_t"] = self.results.groupby("N")["C_t sum"].diff().shift(-1)
 
         return self.performance.mean().iloc[0]

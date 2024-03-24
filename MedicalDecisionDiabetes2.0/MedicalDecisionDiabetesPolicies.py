@@ -12,7 +12,7 @@ class UCB(SDPPolicy):
         self.theta = theta
         super().__init__(model, policy_name)
 
-    def get_decision(self, state, t):
+    def get_decision(self, state, t, T):
         # this method implements the Upper Confidence Bound policy
         # N.B: can't implement this at time t=0 (from t=1 at least).
         # Also can't divide by zero, which means we need each drug to have been tested at least once.
@@ -34,7 +34,7 @@ class IE(SDPPolicy):
         self.theta = theta
         super().__init__(model, policy_name)
 
-    def get_decision(self, state, t):
+    def get_decision(self, state, t, T):
         obj_approx = {}
         for s in state._fields:
             mu, beta, N = getattr(state, s)
@@ -50,7 +50,7 @@ class PureExploitation(SDPPolicy):
     def __init__(self, model: SDPModel, policy_name: str = "PureExploitation"):
         super().__init__(model, policy_name)
 
-    def get_decision(self, state, t):
+    def get_decision(self, state, t, T):
         obj_approx = {}
         for s in state._fields:
             mu, beta, N = getattr(state, s)
@@ -66,7 +66,7 @@ class PureExploration(SDPPolicy):
         self.prng = np.random.RandomState(seed)
         super().__init__(model, policy_name)
 
-    def get_decision(self, state, t):
+    def get_decision(self, state, t, T):
         optimal_decision = self.prng.choice(state._fields)
 
         return {"choice": optimal_decision}
