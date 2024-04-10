@@ -115,8 +115,8 @@ if __name__ == "__main__":
     for theta, t in zip(theta_list, nThetas):
         axsubs[0].plot(
             Iterations,
-            np.array(obj_along_iterations[theta]),#.cumsum()
-            #/ np.arange(1, model.init_args["nIterations"] + 1),
+            np.array(obj_along_iterations[theta]),  # .cumsum()
+            # / np.arange(1, model.init_args["nIterations"] + 1),
             "{}-".format(color_list[t]),
             label="{}".format(theta),
         )

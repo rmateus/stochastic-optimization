@@ -74,7 +74,7 @@ class AssetSellingModel(SDPModel):
         if coin < biasprob["Up"]:
             new_bias = "Up"
             bias = self.upstep
-        elif coin >= biasprob["Up"] and coin < biasprob["Neutral"]:
+        elif coin >= biasprob["Up"] and coin < biasprob["Neutral"] + biasprob["Up"]:
             new_bias = "Neutral"
             bias = 0
         else:

@@ -12,13 +12,14 @@ class SDPPolicy(ABC):
         self.performance = pd.NA
 
     @abstractmethod
-    def get_decision(self, state, t):
+    def get_decision(self, state, t, T):
         """
         Returns the decision made by the policy based on the given state.
 
         Args:
             state (namedtuple): The current state of the system.
             t (float): The current time step.
+            T (float): The end of the time horizon / total number of time steps.
 
         Returns:
             dict: The decision made by the policy.

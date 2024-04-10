@@ -48,7 +48,7 @@ class TrackPolicy(SDPPolicy):
         new_decision = (
             {"sell": 1, "hold": 0}
             if state.price >= state.price_smoothed + self.theta
-            or state.price <= max(0, state.price_smoothed - self.theta)
+            or state.price <= state.price_smoothed - self.theta
             else {"sell": 0, "hold": 1}
         )
 
