@@ -43,6 +43,7 @@ class SDPPolicy(ABC):
             model_copy = copy(self.model)
             model_copy.episode_counter = i
             model_copy.reset(reset_prng=False)
+            state_t_plus_1 = None
             while model_copy.is_finished() is False:
                 state_t = model_copy.state
                 decision_t = model_copy.build_decision(self.get_decision(state_t, model_copy.t, model_copy.T))
@@ -56,7 +57,8 @@ class SDPPolicy(ABC):
                 state_t_plus_1 = model_copy.step(decision_t)
 
             results_dict = {"N": i, "t": model_copy.t, "C_t sum": model_copy.objective}
-            results_dict.update(state_t_plus_1._asdict())
+            if state_t_plus_1 is not None:
+                results_dict.update(state_t_plus_1._asdict())
             result_list.append(results_dict)
 
         # Logging
