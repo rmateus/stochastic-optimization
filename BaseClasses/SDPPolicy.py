@@ -73,4 +73,7 @@ class SDPPolicy(ABC):
         # For reporting, convert cumulative objective to contribution per time
         self.results["C_t"] = self.results.groupby("N")["C_t sum"].diff().shift(-1)
 
+        if self.results["C_t sum"].isna().sum() > 0:
+            print(f"Warning! For {self.results['C_t sum'].isna().sum()} iterations the performance was NaN.")
+
         return self.performance.mean().iloc[0]
