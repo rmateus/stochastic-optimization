@@ -6,7 +6,7 @@ The major changes are:
 - Introduction of abstract base classes `SDPModel` and `SDPPolicy` from which all sequential decision problems and policies inherit
 - Jupyter Notebook with plotly as frontend
 
-Furthermore, the code was cleaned up for readbility and some exercises were added to the Notebooks. 
+Furthermore, the code was cleaned up for readability and exercises were added to some of the Notebooks. 
 
 ## Installation
 
