@@ -15,10 +15,17 @@ Requires Python 3 and the following packages:
 - scipy
 - pandas
 - plotly.express
-- yfinance
+- yfinance (for AssetSelling)
+- osmnx (for StochasticShortestPath)
+- networkx (for StochasticShortestPath)
 
 ## Included Problem Models
 
-This is work in progress. For now, new models exist for `AssetSelling` and `MedicalDecisionDiabetes`. Further models will be added in the future. The other folders contain the models from the original repository [https://github.com/wbpowell328/stochastic-optimization].
+This is work in progress. For now, new models exist for 
+- `AssetSelling`
+- `MedicalDecisionDiabetes`
+- `StochasticShortestPath_static`
+
+Further models will be added in the future. The other folders contain the models from the original repository [https://github.com/wbpowell328/stochastic-optimization].
 
 There is an `ipynb`-file in each problem folder which is the starting point for running the models.
