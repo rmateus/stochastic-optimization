@@ -76,4 +76,4 @@ class SDPPolicy(ABC):
         if self.results["C_t sum"].isna().sum() > 0:
             print(f"Warning! For {self.results['C_t sum'].isna().sum()} iterations the performance was NaN.")
 
-        return self.performance.mean().iloc[0]
+        #return self.performance.mean().iloc[0]
